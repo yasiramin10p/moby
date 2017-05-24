@@ -17,6 +17,9 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/docker/go-connections/tlsconfig"
+
+	"path/filepath"
+	"os"
 )
 
 var (
@@ -906,13 +909,14 @@ func TestTLSConfig(t *testing.T){
 	require.EqualValues(t,tlsConfigDefault.ServerName,resp.ServerName)
 }
 
-//func TestReadCertsDirectory(t *testing.T)  {
-//	var index =  makeIndex("/v1/")
-//	hostDir := filepath.Join(CertsDir, cleanPath(index.Name))
-//	tlsConfig := tlsconfig.ServerDefault()
-//	err := ReadCertsDirectory(tlsConfig, hostDir)
-//	require.Nil(t,err)
-//}
+func TestReadCertsDirectory(t *testing.T)  {
+	var CertsDir = os.Getenv("programdata") + `\docker\certs.d`
+	var index =  makeIndex("/v1/")
+	hostDir := filepath.Join(CertsDir, cleanPath(index.Name))
+	tlsConfig := tlsconfig.ServerDefault()
+	err := ReadCertsDirectory(tlsConfig, hostDir)
+	require.Nil(t,err)
+}
 
 func TestNewTransport(t *testing.T) {
 	var index = makeIndex("/v1/")
