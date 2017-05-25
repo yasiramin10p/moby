@@ -14,16 +14,14 @@ import (
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
-
 	"github.com/stretchr/testify/require"
 	"github.com/docker/go-connections/tlsconfig"
-
-	"path/filepath"
-	"os"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
 	token = []string{"fake-token"}
+	//getIndex = makeIndex("/v1/")
 )
 
 const (
@@ -901,30 +899,22 @@ func TestIsSecureIndex(t *testing.T) {
 
 
 func TestTLSConfig(t *testing.T){
-	var index = makeIndex("/v1/")
         tlsConfigDefault := tlsconfig.ServerDefault()
-	resp, err := newTLSConfig(index.Name,index.Secure)
-	require.Nil(t,err)
-	require.NotNil(t,resp)
-	require.EqualValues(t,tlsConfigDefault.ServerName,resp.ServerName)
-}
-
-func TestReadCertsDirectory(t *testing.T)  {
-	var CertsDir = os.Getenv("programdata") + `\docker\certs.d`
 	var index =  makeIndex("/v1/")
-	hostDir := filepath.Join(CertsDir, cleanPath(index.Name))
-	tlsConfig := tlsconfig.ServerDefault()
-	err := ReadCertsDirectory(tlsConfig, hostDir)
-	require.Nil(t,err)
+	tlsConfig, error := newTLSConfig(index.Name,index.Secure)
+	assert.NoError(t, error)
+	require.NotNil(t,tlsConfig)
+	require.EqualValues(t,tlsConfigDefault.ServerName,tlsConfig.ServerName)
 }
 
 func TestNewTransport(t *testing.T) {
-	var index = makeIndex("/v1/")
-	resp, err := newTLSConfig(index.Name,index.Secure)
-	tr := NewTransport(resp)
-	require.NotNil(t,tr)
-	require.Nil(t,err)
-	require.EqualValues(t,resp.ServerName,tr.TLSClientConfig.ServerName)
+	var index =  makeIndex("/v1/")
+	tlsConfig, error := newTLSConfig(index.Name,index.Secure)
+	transport := NewTransport(tlsConfig)
+	require.NotNil(t,transport)
+	assert.NoError(t, error)
+	require.EqualValues(t,tlsConfig.ServerName,transport.TLSClientConfig.ServerName)
+	require.EqualValues(t,tlsConfig.Certificates,transport.TLSClientConfig.Certificates)
 }
 
 type debugTransport struct {
