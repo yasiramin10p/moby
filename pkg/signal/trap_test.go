@@ -12,8 +12,5 @@ func TestDumpStacks(t *testing.T) {
 	var file *os.File
 	file = os.Stderr
 	assert.NoError(t, error)
-	assert.EqualValues(t,file.Name(),path)
-}
-func TestTrap(t *testing.T) {
-	Trap()
+	assert.EqualValues(t, file.Name(), path)
 }
