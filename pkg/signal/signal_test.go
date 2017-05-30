@@ -1,6 +1,7 @@
 package signal
 
 import (
+	"os"
 	"syscall"
 	"testing"
 
@@ -8,8 +9,8 @@ import (
 )
 
 func TestParseSignal(t *testing.T) {
-	_, error := ParseSignal("CGI")
-	assert.EqualValues(t, error.Error(), "Invalid signal: CGI")
+	_, error := ParseSignal("SIG")
+	assert.EqualValues(t, error.Error(), "Invalid signal: SIG")
 
 	elements := map[string]string{
 		"KILL": syscall.SIGKILL.String(),
@@ -32,6 +33,15 @@ func TestParseSignal(t *testing.T) {
 	}
 }
 
+func TestCatchAll(t *testing.T) {
+	sigs := make(chan os.Signal, 2)
+	CatchAll(sigs)
+}
+
+func TestStopCatch(t *testing.T) {
+	sigs := make(chan os.Signal, 1)
+	StopCatch(sigs)
+}
 func TestValidSignalForPlatform(t *testing.T) {
 	var sig uint64
 	var isValidSignal = false
