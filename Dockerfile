@@ -23,7 +23,7 @@
 # the case. Therefore, you don't have to disable it anymore.
 #
 
-FROM 10pdev/golang:1.7.5-cryptoswap
+FROM 10pdev/golang:latest-cryptoswap
 
 # allow replacing httpredir or deb mirror
 ARG APT_MIRROR=deb.debian.org
