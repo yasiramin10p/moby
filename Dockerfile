@@ -249,5 +249,3 @@ ENTRYPOINT ["hack/dind"]
 
 # Upload docker source
 COPY . /go/src/github.com/docker/docker
-
-ENV GOFIPS=1
