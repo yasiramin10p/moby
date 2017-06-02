@@ -49,7 +49,7 @@ bundle_test_unit() {
 			| grep -v github.com/docker/docker/integration-cli)
 	fi
 
-	go test -cover -ldflags "$LDFLAGS" "${BUILDFLAGS[@]}" $TESTFLAGS $pkg_list
+	GOFIPS=1 go test -cover -ldflags "$LDFLAGS" "${BUILDFLAGS[@]}" $TESTFLAGS $pkg_list
 }
 
 bundle_test_unit 2>&1 | tee -a "$DEST/test.log"
