@@ -215,7 +215,7 @@ RUN groupadd -r docker
 RUN useradd --create-home --gid docker unprivilegeduser
 
 VOLUME /var/lib/docker
-WORKDIR
+WORKDIR /go/src/github.com/docker/docker
 
 
 ENV DOCKER_BUILDTAGS apparmor pkcs11 seccomp selinux
