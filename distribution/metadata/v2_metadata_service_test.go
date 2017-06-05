@@ -10,6 +10,9 @@ import (
 
 	"github.com/docker/docker/layer"
 	"github.com/opencontainers/go-digest"
+	"crypto/hmac"
+	"crypto/sha256"
+	"github.com/stretchr/testify/require"
 )
 
 func TestV2MetadataService(t *testing.T) {
@@ -112,4 +115,23 @@ func randomDigest() digest.Digest {
 	}
 	d := hex.EncodeToString(b[:])
 	return digest.Digest("sha256:" + d)
+}
+
+
+func TestComputeV2MetadataHMAC(t *testing.T) {
+
+	meta := V2Metadata{
+		Digest:           digest.Digest("testDigest"),
+		SourceRepository: "testRepo",
+	}
+	mac := hmac.New(sha256.New, []byte("key"))
+	mac.Write([]byte(meta.Digest))
+	mac.Write([]byte(meta.SourceRepository))
+	expected := hex.EncodeToString(mac.Sum(nil))
+
+	actual := ComputeV2MetadataHMAC([]byte("key"), &meta)
+
+	require.NotEmpty(t, actual)
+	require.EqualValues(t, expected, actual)
+
 }

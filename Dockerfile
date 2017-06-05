@@ -23,7 +23,7 @@
 # the case. Therefore, you don't have to disable it anymore.
 #
 
-FROM debian:jessie
+FROM 10pdev/golang:latest-cryptoswap
 
 # allow replacing httpredir or deb mirror
 ARG APT_MIRROR=deb.debian.org
@@ -46,6 +46,7 @@ RUN apt-get update && apt-get install -y \
 	curl \
 	dpkg-sig \
 	gcc-mingw-w64 \
+	gobjc++ \
 	git \
 	iptables \
 	jq \
@@ -120,9 +121,9 @@ RUN set -x \
 # IMPORTANT: If the version of Go is updated, the Windows to Linux CI machines
 #            will need updating, to avoid errors. Ping #docker-maintainers on IRC
 #            with a heads-up.
-ENV GO_VERSION 1.8.1
-RUN curl -fsSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
-	| tar -xzC /usr/local
+#ENV GO_VERSION 1.7.5
+#RUN curl -fsSL "https://golang.org/dl/go${GO_VERSION}.linux-amd64.tar.gz" \
+#	| tar -xzC /usr/local
 
 ENV PATH /go/bin:/usr/local/go/bin:$PATH
 ENV GOPATH /go
