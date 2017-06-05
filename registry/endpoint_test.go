@@ -5,6 +5,9 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+
+	"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestEndpointParse(t *testing.T) {
@@ -46,6 +49,18 @@ func TestEndpointParseInvalid(t *testing.T) {
 	}
 }
 
+func TestNewV1Endpoint(t *testing.T)  {
+	uri, error := url.Parse("http://0.0.0.0:5000/v2/")
+	assert.NoError(t, error)
+	var index = makeIndex("/v1/")
+	tlsConfig, error := newTLSConfig(index.Name, index.Secure)
+	assert.NoError(t, error)
+	v1EndPoint, error := newV1Endpoint(*uri,tlsConfig,"",nil)
+	require.NotNil(t,v1EndPoint)
+	assert.NoError(t, error)
+	require.EqualValues(t,v1EndPoint.URL.Host,uri.Host)
+	require.EqualValues(t,v1EndPoint.IsSecure,index.Secure)
+}
 // Ensure that a registry endpoint that responds with a 401 only is determined
 // to be a valid v1 registry endpoint
 func TestValidateEndpoint(t *testing.T) {
