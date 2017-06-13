@@ -14,10 +14,14 @@ import (
 	"github.com/docker/distribution/registry/client/transport"
 	"github.com/docker/docker/api/types"
 	registrytypes "github.com/docker/docker/api/types/registry"
+	"github.com/stretchr/testify/require"
+	"github.com/docker/go-connections/tlsconfig"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
 	token = []string{"fake-token"}
+	//getIndex = makeIndex("/v1/")
 )
 
 const (
@@ -891,6 +895,26 @@ func TestIsSecureIndex(t *testing.T) {
 			t.Errorf("isSecureIndex failed for %q %v, expected %v got %v", tt.addr, tt.insecureRegistries, tt.expected, sec)
 		}
 	}
+}
+
+
+func TestTLSConfig(t *testing.T){
+        tlsConfigDefault := tlsconfig.ServerDefault()
+	var index =  makeIndex("/v1/")
+	tlsConfig, error := newTLSConfig(index.Name,index.Secure)
+	assert.NoError(t, error)
+	require.NotNil(t,tlsConfig)
+	require.EqualValues(t,tlsConfigDefault.ServerName,tlsConfig.ServerName)
+}
+
+func TestNewTransport(t *testing.T) {
+	var index =  makeIndex("/v1/")
+	tlsConfig, error := newTLSConfig(index.Name,index.Secure)
+	transport := NewTransport(tlsConfig)
+	require.NotNil(t,transport)
+	assert.NoError(t, error)
+	require.EqualValues(t,tlsConfig.ServerName,transport.TLSClientConfig.ServerName)
+	require.EqualValues(t,tlsConfig.Certificates,transport.TLSClientConfig.Certificates)
 }
 
 type debugTransport struct {
