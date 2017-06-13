@@ -56,6 +56,7 @@ func TestUntarUncompressed(t *testing.T) {
 	defer decompressedStream.Close()
 
 	readFile, _ := ioutil.ReadAll(decompressedStream)
+	assert.NoError(t, err)
 	fileData := string(readFile)
 	assert.Equal(t, strings.Contains(fileData, "test un compressed"), true)
 
@@ -70,7 +71,8 @@ func TestApplyUncompressedLayer(t *testing.T) {
 	err = system.MkdirAll(destination, 0700)
 	require.NoError(t, err)
 
-	err = ioutil.WriteFile(filepath.Join(destination, "test"), []byte("test un compressed"), 0644)
+	byteArray := []byte("test un compressed")
+	err = ioutil.WriteFile(filepath.Join(destination, "test"), byteArray, 0644)
 	require.NoError(t, err)
 
 	stream, err := archive.Tar(destination, archive.Uncompressed)
@@ -81,7 +83,7 @@ func TestApplyUncompressedLayer(t *testing.T) {
 
 	size, err = ApplyUncompressedLayer(destination, stream, &archive.TarOptions{ExcludePatterns: []string{"testUnCompressed"}})
 	assert.NoError(t, err)
-	assert.Equal(t,int64(0),size)
+	assert.NotEqual(t,int64(len(byteArray)),size)
 
 	stream, err = archive.Tar(destination, archive.Uncompressed)
 	require.NoError(t, err)
@@ -91,7 +93,8 @@ func TestApplyUncompressedLayer(t *testing.T) {
 
 	defer decompressedStream.Close()
 
-	readFile, _ := ioutil.ReadAll(decompressedStream)
+	readFile, err := ioutil.ReadAll(decompressedStream)
+	assert.NoError(t, err)
 	fileData := string(readFile)
 	assert.Equal(t, strings.Contains(fileData, "test un compressed"), true)
 }
