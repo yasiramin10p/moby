@@ -55,7 +55,7 @@ func TestUntarUncompressed(t *testing.T) {
 
 	defer decompressedStream.Close()
 
-	readFile, _ := ioutil.ReadAll(decompressedStream)
+	readFile, err := ioutil.ReadAll(decompressedStream)
 	assert.NoError(t, err)
 	fileData := string(readFile)
 	assert.Equal(t, strings.Contains(fileData, "test un compressed"), true)
