@@ -17,6 +17,7 @@ import (
 	"github.com/docker/docker/pkg/reexec"
 	"github.com/docker/docker/pkg/system"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func init() {
@@ -24,72 +25,75 @@ func init() {
 }
 
 func TestUntarUncompressed(t *testing.T) {
-	tempDir, errTempDir := ioutil.TempDir("", "docker-TestUntar")
-	assert.NoError(t, errTempDir)
+	tempDir, err := ioutil.TempDir("", "docker-TestUntar")
+	require.NoError(t, err)
 
 	defer os.RemoveAll(tempDir)
 
 	destination := filepath.Join(tempDir, "src")
 
-	errMakeDir := system.MkdirAll(destination, 0700)
-	assert.NoError(t, errMakeDir)
+	err = system.MkdirAll(destination, 0700)
+	require.NoError(t, err)
 
-	ioutil.WriteFile(filepath.Join(destination, "test"), []byte("test un compressed"), 0644)
+	err = ioutil.WriteFile(filepath.Join(destination, "test"), []byte("test un compressed"), 0644)
+	require.NoError(t, err)
 
-	errorEmptyStream := UntarUncompressed(nil, destination, &archive.TarOptions{ExcludePatterns: []string{"testuncompresss"}})
-	assert.EqualError(t, errorEmptyStream, "Empty archive")
+	err = UntarUncompressed(nil, destination, &archive.TarOptions{ExcludePatterns: []string{"testuncompresss"}})
+	assert.EqualError(t, err, "Empty archive")
 
-	stream, errorTarArchive := archive.Tar(destination, archive.Uncompressed)
-	assert.NoError(t, errorTarArchive)
+	stream, err := archive.Tar(destination, archive.Uncompressed)
+	require.NoError(t,err)
 
-	_, errorExcludePatternNil := ApplyUncompressedLayer(destination, stream, &archive.TarOptions{ExcludePatterns: nil})
-	assert.NoError(t, errorExcludePatternNil)
+	err = UntarUncompressed(stream, destination, &archive.TarOptions{ExcludePatterns: []string{"testuncompresss"}})
+	assert.NoError(t, err)
 
-	errorUnCompressed := UntarUncompressed(stream, destination, &archive.TarOptions{ExcludePatterns: []string{"testuncompresss"}})
-	assert.NoError(t, errorUnCompressed)
+	stream, err = archive.Tar(destination, archive.Uncompressed)
+	require.NoError(t,err)
 
-	stream, errorArchive := archive.Tar(destination, archive.Uncompressed)
-	assert.NoError(t, errorArchive)
+	decompressedStream, err := archive.DecompressStream(stream)
+	assert.NoError(t,err)
 
-	decompressedArchive, errDecompress := archive.DecompressStream(stream)
-	assert.NoError(t, errDecompress)
+	defer decompressedStream.Close()
 
-	defer decompressedArchive.Close()
-
-	readFile, _ := ioutil.ReadAll(decompressedArchive)
+	readFile, _ := ioutil.ReadAll(decompressedStream)
 	fileData := string(readFile)
 	assert.Equal(t, strings.Contains(fileData, "test un compressed"), true)
 
 }
 func TestApplyUncompressedLayer(t *testing.T) {
-	tempDir, errTempDir := ioutil.TempDir("", "docker-TestUntar")
-	assert.NoError(t, errTempDir)
+	tempDir, err := ioutil.TempDir("", "docker-TestUntar")
+	require.NoError(t, err)
+
+	defer os.RemoveAll(tempDir)
 
 	destination := filepath.Join(tempDir, "src")
-	errMakeDir := system.MkdirAll(destination, 0700)
-	assert.NoError(t, errMakeDir)
+	err = system.MkdirAll(destination, 0700)
+	require.NoError(t, err)
 
-	ioutil.WriteFile(filepath.Join(destination, "test"), []byte("test un compressed"), 0644)
+	err = ioutil.WriteFile(filepath.Join(destination, "test"), []byte("test un compressed"), 0644)
+	require.NoError(t, err)
 
-	stream, errorTarArchive := archive.Tar(destination, archive.Uncompressed)
-	assert.NoError(t, errorTarArchive)
+	stream, err := archive.Tar(destination, archive.Uncompressed)
+	require.NoError(t, err)
 
-	_, errorExcludePatternNil := ApplyUncompressedLayer(destination, stream, &archive.TarOptions{ExcludePatterns: nil})
-	assert.NoError(t, errorExcludePatternNil)
+	size, err := ApplyUncompressedLayer(destination, stream, &archive.TarOptions{ExcludePatterns: nil})
+	assert.NoError(t, err)
 
-	_, errorUnCompressed := ApplyUncompressedLayer(destination, stream, &archive.TarOptions{ExcludePatterns: []string{"testUnCompressed"}})
-	assert.NoError(t, errorUnCompressed)
+	size, err = ApplyUncompressedLayer(destination, stream, &archive.TarOptions{ExcludePatterns: []string{"testUnCompressed"}})
+	assert.NoError(t, err)
+	assert.Equal(t,int64(0),size)
 
-	stream, errorArchive := archive.Tar(destination, archive.Uncompressed)
-	assert.NoError(t, errorArchive)
+	stream, err = archive.Tar(destination, archive.Uncompressed)
+	require.NoError(t, err)
 
-	decompressedArchive, errDecompress := archive.DecompressStream(stream)
-	assert.NoError(t, errDecompress)
+	decompressedStream, err := archive.DecompressStream(stream)
+	assert.NoError(t, err)
 
-	readFile, _ := ioutil.ReadAll(decompressedArchive)
+	defer decompressedStream.Close()
+
+	readFile, _ := ioutil.ReadAll(decompressedStream)
 	fileData := string(readFile)
 	assert.Equal(t, strings.Contains(fileData, "test un compressed"), true)
-
 }
 
 func TestChrootTarUntar(t *testing.T) {
